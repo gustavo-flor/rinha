@@ -2,11 +2,12 @@ package com.github.gustavoflor.rinha.entrypoint.controller;
 
 import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.entrypoint.ApiTest;
-import com.github.gustavoflor.rinha.util.FakerUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 
 import static com.github.gustavoflor.rinha.core.TransferType.CREDIT;
 import static com.github.gustavoflor.rinha.core.TransferType.DEBIT;
@@ -17,6 +18,9 @@ import static com.github.gustavoflor.rinha.util.FakerUtil.randomInteger;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransfer;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequest;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithDescription;
+import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithType;
+import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithTypeAndValue;
+import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithValue;
 import static java.text.MessageFormat.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -154,7 +158,7 @@ class CustomerControllerTest extends ApiTest {
         """)
     void givenANegativeValueWhenTryDoTransferThenShouldReturnBadRequestStatus() {
         final var customerId = randomInteger();
-        final var request = FakerUtil.randomTransferRequestWithValue(randomInteger() * -1);
+        final var request = randomTransferRequestWithValue(randomInteger() * -1);
 
         doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
     }
@@ -167,7 +171,7 @@ class CustomerControllerTest extends ApiTest {
         """)
     void givenAZeroValueWhenTryDoTransferThenShouldReturnBadRequestStatus() {
         final var customerId = randomInteger();
-        final var request = FakerUtil.randomTransferRequestWithValue(0);
+        final var request = randomTransferRequestWithValue(0);
 
         doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
     }
@@ -180,7 +184,7 @@ class CustomerControllerTest extends ApiTest {
         """)
     void givenANullValueWhenTryDoTransferThenShouldReturnBadRequestStatus() {
         final var customerId = randomInteger();
-        final var request = FakerUtil.randomTransferRequestWithValue(null);
+        final var request = randomTransferRequestWithValue(null);
 
         doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
     }
@@ -193,7 +197,7 @@ class CustomerControllerTest extends ApiTest {
         """)
     void givenANullTypeWhenTryDoTransferThenShouldReturnBadRequestStatus() {
         final var customerId = randomInteger();
-        final var request = FakerUtil.randomTransferRequestWithType(null);
+        final var request = randomTransferRequestWithType(null);
 
         doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
     }
@@ -206,7 +210,7 @@ class CustomerControllerTest extends ApiTest {
         """)
     void givenAnEmptyDescriptionWhenTryDoTransferThenShouldReturnBadRequestStatus() {
         final var customerId = randomInteger();
-        final var request = FakerUtil.randomTransferRequestWithDescription("");
+        final var request = randomTransferRequestWithDescription("");
 
         doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
     }
@@ -232,7 +236,7 @@ class CustomerControllerTest extends ApiTest {
         """)
     void givenATooHighDebitRequestWhenTryDoTransferThenShouldReturnUnprocessableEntityStatus() {
         final var customer = customerRepository.save(randomCustomer(0, 0));
-        final var request = FakerUtil.randomTransferRequestWithType(DEBIT);
+        final var request = randomTransferRequestWithType(DEBIT);
 
         doTransfer(customer.getId(), request).statusCode(UNPROCESSABLE_ENTITY.value());
     }
@@ -246,7 +250,7 @@ class CustomerControllerTest extends ApiTest {
     void givenADebitRequestWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() {
         final var requestValue = randomInteger();
         final var customer = customerRepository.save(randomCustomer(randomInteger(), randomInteger() + requestValue));
-        final var request = FakerUtil.randomTransferRequestWithTypeAndValue(DEBIT, requestValue);
+        final var request = randomTransferRequestWithTypeAndValue(DEBIT, requestValue);
         final var expectedBalance = customer.getBalance() - requestValue;
 
         doTransfer(customer.getId(), request).statusCode(OK.value())
@@ -267,7 +271,7 @@ class CustomerControllerTest extends ApiTest {
     void givenAFullDebitRequestWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() {
         final var customer = customerRepository.save(randomCustomer(0, randomInteger()));
         final var requestValue = customer.getBalance();
-        final var request = FakerUtil.randomTransferRequestWithTypeAndValue(DEBIT, requestValue);
+        final var request = randomTransferRequestWithTypeAndValue(DEBIT, requestValue);
 
         doTransfer(customer.getId(), request).statusCode(OK.value())
             .body(BALANCE_FIELD, is(0))
@@ -287,7 +291,7 @@ class CustomerControllerTest extends ApiTest {
     void givenACreditRequestWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() {
         final var requestValue = randomInteger();
         final var customer = customerRepository.save(randomCustomer());
-        final var request = FakerUtil.randomTransferRequestWithTypeAndValue(CREDIT, requestValue);
+        final var request = randomTransferRequestWithTypeAndValue(CREDIT, requestValue);
         final var expectedBalance = customer.getBalance() + requestValue;
 
         doTransfer(customer.getId(), request).statusCode(OK.value())
@@ -297,6 +301,34 @@ class CustomerControllerTest extends ApiTest {
         final var founded = customerRepository.findById(customer.getId()).orElseThrow();
         assertThat(founded.getBalance()).isEqualTo(expectedBalance);
         assertThat(founded.getLimit()).isEqualTo(customer.getLimit());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN multiple credit requests
+        WHEN try do transfer
+        THEN should return ok status and update registry
+        """)
+    void givenMultipleCreditRequestsWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() throws InterruptedException {
+        final var requestValue = randomInteger();
+        final var customer = customerRepository.save(randomCustomer());
+        final var amount = randomInteger(10, 15);
+        final var expectedBalance = customer.getBalance() + (requestValue * amount);
+
+        doSyncAndConcurrently(amount, threadName -> {
+            final var request = randomTransferRequest(CREDIT, requestValue, threadName);
+            doTransfer(customer.getId(), request).statusCode(OK.value());
+        });
+
+        final var founded = customerRepository.findById(customer.getId()).orElseThrow();
+        assertThat(founded.getBalance()).isEqualTo(expectedBalance);
+        assertThat(founded.getLimit()).isEqualTo(customer.getLimit());
+        final var transfers = transferRepository.findAll();
+        assertThat(transfers.size()).isEqualTo(amount);
+        transfers.forEach(it -> {
+            assertThat(it.getType()).isEqualTo(CREDIT);
+            assertThat(it.getValue()).isEqualTo(requestValue);
+        });
     }
 
 }
