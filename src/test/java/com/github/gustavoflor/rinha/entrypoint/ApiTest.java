@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-import java.io.IOException;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 
@@ -21,7 +19,7 @@ public abstract class ApiTest extends CoreTest {
     private String port;
 
     @BeforeEach
-    void beforeEach() throws IOException {
+    void beforeEach() {
         RestAssured.baseURI = "http://localhost:" + port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
