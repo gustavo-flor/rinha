@@ -45,18 +45,30 @@ public class FakerUtil {
     }
 
     public static TransferRequest randomTransferRequest() {
-        return randomTransferRequest(randomTransferType());
+        return randomTransferRequestWithType(randomTransferType());
     }
 
-    public static TransferRequest randomTransferRequest(final TransferType transferType) {
-        return randomTransferRequest(transferType, randomInteger());
+    public static TransferRequest randomTransferRequestWithType(final TransferType transferType) {
+        return randomTransferRequestWithTypeAndValue(transferType, randomInteger());
     }
 
-    public static TransferRequest randomTransferRequest(final TransferType transferType, final Integer value) {
+    public static TransferRequest randomTransferRequestWithValue(final Integer value) {
+        return randomTransferRequestWithTypeAndValue(randomTransferType(), value);
+    }
+
+    public static TransferRequest randomTransferRequestWithDescription(final String description) {
+        return randomTransferRequest(randomTransferType(), randomInteger(), description);
+    }
+
+    public static TransferRequest randomTransferRequestWithTypeAndValue(final TransferType transferType, final Integer value) {
+        return randomTransferRequest(transferType, value, randomDescription());
+    }
+
+    public static TransferRequest randomTransferRequest(final TransferType transferType, final Integer value, final String description) {
         return TransferRequest.builder()
             .value(value)
             .type(transferType)
-            .description(randomDescription())
+            .description(description)
             .build();
     }
 

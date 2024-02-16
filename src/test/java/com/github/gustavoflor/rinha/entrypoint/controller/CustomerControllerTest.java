@@ -2,6 +2,7 @@ package com.github.gustavoflor.rinha.entrypoint.controller;
 
 import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.entrypoint.ApiTest;
+import com.github.gustavoflor.rinha.util.FakerUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,12 +16,14 @@ import static com.github.gustavoflor.rinha.util.FakerUtil.randomCustomer;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomInteger;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransfer;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequest;
+import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithDescription;
 import static java.text.MessageFormat.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
@@ -145,13 +148,91 @@ class CustomerControllerTest extends ApiTest {
 
     @Test
     @DisplayName("""
+        GIVEN a negative value
+        WHEN try do transfer
+        THEN should return bad request status
+        """)
+    void givenANegativeValueWhenTryDoTransferThenShouldReturnBadRequestStatus() {
+        final var customerId = randomInteger();
+        final var request = FakerUtil.randomTransferRequestWithValue(randomInteger() * -1);
+
+        doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a zero value
+        WHEN try do transfer
+        THEN should return bad request status
+        """)
+    void givenAZeroValueWhenTryDoTransferThenShouldReturnBadRequestStatus() {
+        final var customerId = randomInteger();
+        final var request = FakerUtil.randomTransferRequestWithValue(0);
+
+        doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a null value
+        WHEN try do transfer
+        THEN should return bad request status
+        """)
+    void givenANullValueWhenTryDoTransferThenShouldReturnBadRequestStatus() {
+        final var customerId = randomInteger();
+        final var request = FakerUtil.randomTransferRequestWithValue(null);
+
+        doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a null type
+        WHEN try do transfer
+        THEN should return bad request status
+        """)
+    void givenANullTypeWhenTryDoTransferThenShouldReturnBadRequestStatus() {
+        final var customerId = randomInteger();
+        final var request = FakerUtil.randomTransferRequestWithType(null);
+
+        doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an empty description
+        WHEN try do transfer
+        THEN should return bad request status
+        """)
+    void givenAnEmptyDescriptionWhenTryDoTransferThenShouldReturnBadRequestStatus() {
+        final var customerId = randomInteger();
+        final var request = FakerUtil.randomTransferRequestWithDescription("");
+
+        doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a null description
+        WHEN try do transfer
+        THEN should return bad request status
+        """)
+    void givenANullDescriptionWhenTryDoTransferThenShouldReturnBadRequestStatus() {
+        final var customerId = randomInteger();
+        final var request = randomTransferRequestWithDescription(null);
+
+        doTransfer(customerId, request).statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("""
         GIVEN a too high debit request
         WHEN try do transfer
         THEN should return unprocessable entity status
         """)
     void givenATooHighDebitRequestWhenTryDoTransferThenShouldReturnUnprocessableEntityStatus() {
         final var customer = customerRepository.save(randomCustomer(0, 0));
-        final var request = randomTransferRequest(DEBIT);
+        final var request = FakerUtil.randomTransferRequestWithType(DEBIT);
 
         doTransfer(customer.getId(), request).statusCode(UNPROCESSABLE_ENTITY.value());
     }
@@ -165,7 +246,7 @@ class CustomerControllerTest extends ApiTest {
     void givenADebitRequestWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() {
         final var requestValue = randomInteger();
         final var customer = customerRepository.save(randomCustomer(randomInteger(), randomInteger() + requestValue));
-        final var request = randomTransferRequest(DEBIT, requestValue);
+        final var request = FakerUtil.randomTransferRequestWithTypeAndValue(DEBIT, requestValue);
         final var expectedBalance = customer.getBalance() - requestValue;
 
         doTransfer(customer.getId(), request).statusCode(OK.value())
@@ -186,7 +267,7 @@ class CustomerControllerTest extends ApiTest {
     void givenAFullDebitRequestWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() {
         final var customer = customerRepository.save(randomCustomer(0, randomInteger()));
         final var requestValue = customer.getBalance();
-        final var request = randomTransferRequest(DEBIT, requestValue);
+        final var request = FakerUtil.randomTransferRequestWithTypeAndValue(DEBIT, requestValue);
 
         doTransfer(customer.getId(), request).statusCode(OK.value())
             .body(BALANCE_FIELD, is(0))
@@ -206,7 +287,7 @@ class CustomerControllerTest extends ApiTest {
     void givenACreditRequestWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() {
         final var requestValue = randomInteger();
         final var customer = customerRepository.save(randomCustomer());
-        final var request = randomTransferRequest(CREDIT, requestValue);
+        final var request = FakerUtil.randomTransferRequestWithTypeAndValue(CREDIT, requestValue);
         final var expectedBalance = customer.getBalance() + requestValue;
 
         doTransfer(customer.getId(), request).statusCode(OK.value())
