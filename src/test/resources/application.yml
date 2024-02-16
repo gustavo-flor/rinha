@@ -8,5 +8,8 @@ spring:
     hibernate:
       ddl-auto: create
     open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    driverClassName: org.postgresql.Driver
   liquibase:
     enabled: false

@@ -8,9 +8,11 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
     change-log: classpath:migrations/changelog.yml
   datasource:
+    driverClassName: org.postgresql.Driver
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     url: ${DATASOURCE_URL}
