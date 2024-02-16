@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2024-02-01-create-customer-table-01
+      author: gustavo-flor
+      changes:
+        - createTable:
+            tableName: customer
+            columns:
+              - column:
+                  name: id
+                  type: tinyint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: limit
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: int
+                  constraints:
+                    nullable: false

@@ -1,0 +1,16 @@
+server:
+  port: 8080
+  shutdown: graceful
+spring:
+  main:
+    banner-mode: off
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  liquibase:
+    change-log: classpath:migrations/changelog.yml
+  datasource:
+    username: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:postgres}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/rinha}

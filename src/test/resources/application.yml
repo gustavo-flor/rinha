@@ -1,0 +1,12 @@
+server:
+  port: 8080
+  shutdown: graceful
+spring:
+  main:
+    banner-mode: off
+  jpa:
+    hibernate:
+      ddl-auto: create
+    open-in-view: false
+  liquibase:
+    enabled: false

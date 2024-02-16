@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2024-02-03-create-transfer-table-01
+      author: gustavo-flor
+      changes:
+        - createTable:
+            tableName: transfer
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: executed_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: tinyint
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 2024-02-03-create-transfer-table-02
+      author: gustavo-flor
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: customer_id
+            baseTableName: transfer
+            constraintName: fk_transfer_customer_id
+            referencedColumnNames: id
+            referencedTableName: customer
