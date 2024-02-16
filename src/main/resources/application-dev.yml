@@ -3,9 +3,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
+    url: jdbc:postgresql://localhost:5432/rinha
     username: postgres
     password: postgres
-    url: jdbc:postgresql://localhost:5432/rinha
   data:
     redis:
       host: localhost
