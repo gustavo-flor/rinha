@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec java -jar app.jar
+exec java -XX:MaxRAMPercentage=80 -XX:+UseParallelGC -jar app.jar
