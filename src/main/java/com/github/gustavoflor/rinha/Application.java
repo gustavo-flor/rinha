@@ -15,7 +15,6 @@ import org.springframework.boot.actuate.autoconfigure.observation.ObservationAut
 import org.springframework.boot.actuate.autoconfigure.observation.web.client.HttpClientObservationsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.scheduling.ScheduledTasksObservabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
@@ -42,7 +41,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		TaskExecutionAutoConfiguration.class,
 		RestClientAutoConfiguration.class,
 		RestTemplateAutoConfiguration.class,
-		SpringApplicationAdminJmxAutoConfiguration.class,
 		TaskSchedulingAutoConfiguration.class,
 		HttpClientObservationsAutoConfiguration.class,
 		JmxEndpointAutoConfiguration.class,
@@ -56,7 +54,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		StartupTimeMetricsListenerAutoConfiguration.class,
 		SystemMetricsAutoConfiguration.class,
 		TaskExecutorMetricsAutoConfiguration.class,
-		TomcatMetricsAutoConfiguration.class,
+		TomcatMetricsAutoConfiguration.class
 	}
 )
 @EnableJpaRepositories(basePackages = "com.github.gustavoflor.rinha.core.repository")

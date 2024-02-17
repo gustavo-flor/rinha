@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: rinha
     volumes:
-      - ../.docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - .docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
   redis:
     image: redis:7.2.4-alpine
     ports:
