@@ -8,9 +8,6 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-  liquibase:
-    change-log: classpath:migrations/changelog.yml
   datasource:
     driverClassName: org.postgresql.Driver
     url: ${DATASOURCE_URL}

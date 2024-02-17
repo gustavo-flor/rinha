@@ -13,6 +13,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +31,10 @@ public class Transfer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    private Integer customerId;
+
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private TransferType type;
 
     @Column(name = "\"value\"")
@@ -38,8 +43,6 @@ public class Transfer {
     private String description;
 
     private LocalDateTime executedAt;
-
-    private Integer customerId;
 
     public void apply(final Customer customer) {
         type.transfer(customer, value);
