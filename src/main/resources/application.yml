@@ -4,6 +4,7 @@ server:
 spring:
   main:
     banner-mode: off
+    lazy-initialization: true
   jpa:
     hibernate:
       ddl-auto: none
@@ -19,6 +20,9 @@ spring:
       port: ${REDIS_PORT}
       repositories:
         enabled: false
+    jpa:
+      repositories:
+        bootstrap-mode: deferred
   aop:
     auto: false
   jmx:
