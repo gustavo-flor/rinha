@@ -20,9 +20,6 @@ spring:
       port: ${REDIS_PORT}
       repositories:
         enabled: false
-    jpa:
-      repositories:
-        bootstrap-mode: deferred
   aop:
     auto: false
   jmx:
@@ -45,34 +42,6 @@ spring:
     formcontent:
       filter:
         enabled: false
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration
-      - org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration
-      - org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
-      - org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration
-      - org.springframework.boot.autoconfigure.netty.NettyAutoConfiguration
-      - org.springframework.boot.autoconfigure.reactor.ReactorAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
-      - org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
-      - org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration
-      - org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration
-      - org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
-      - org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.observation.web.client.HttpClientObservationsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.endpoint.jmx.JmxEndpointAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.observation.ObservationAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.scheduling.ScheduledTasksObservabilityAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.integration.IntegrationMetricsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.jdbc.DataSourcePoolMetricsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.JvmMetricsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.LogbackMetricsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.startup.StartupTimeMetricsListenerAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.task.TaskExecutorMetricsAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration
 management:
   endpoints:
     jmx:
