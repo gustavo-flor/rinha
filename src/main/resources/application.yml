@@ -4,6 +4,7 @@ server:
 spring:
   main:
     banner-mode: off
+    lazy-initialization: true
   jpa:
     hibernate:
       ddl-auto: none
@@ -23,8 +24,6 @@ spring:
     auto: false
   jmx:
     enabled: false
-  jta:
-    enabled: true
   servlet:
     multipart:
       enabled: false
@@ -53,3 +52,7 @@ management:
   health:
     diskspace:
       enabled: false
+logging:
+  level:
+    root: debug
+debug: true
