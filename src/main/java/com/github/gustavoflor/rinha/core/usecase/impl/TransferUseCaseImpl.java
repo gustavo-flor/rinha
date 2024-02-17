@@ -2,9 +2,9 @@ package com.github.gustavoflor.rinha.core.usecase.impl;
 
 import com.github.gustavoflor.rinha.core.exception.NotFoundException;
 import com.github.gustavoflor.rinha.core.exception.ServiceUnavailableException;
-import com.github.gustavoflor.rinha.core.repository.TransferRepository;
 import com.github.gustavoflor.rinha.core.service.CustomerService;
 import com.github.gustavoflor.rinha.core.service.LockService;
+import com.github.gustavoflor.rinha.core.service.TransferService;
 import com.github.gustavoflor.rinha.core.usecase.TransferUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -23,7 +23,7 @@ public class TransferUseCaseImpl implements TransferUseCase {
 
     private final TransactionTemplate transactionTemplate;
     private final CustomerService customerService;
-    private final TransferRepository transferRepository;
+    private final TransferService transferService;
     private final LockService lockService;
 
     @Override
@@ -46,7 +46,7 @@ public class TransferUseCaseImpl implements TransferUseCase {
             transfer.apply(customer);
 
             customerService.save(customer);
-            transferRepository.save(transfer);
+            transferService.save(transfer);
 
             return new Output(customer);
         });

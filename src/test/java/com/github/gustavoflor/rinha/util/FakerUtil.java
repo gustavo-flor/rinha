@@ -56,6 +56,10 @@ public class FakerUtil {
         return randomTransferRequestWithTypeAndValue(randomTransferType(), value);
     }
 
+    public static TransferRequest randomTransferRequestWithValueAndDescription(final Integer value, final String description) {
+        return randomTransferRequest(randomTransferType(), value, description);
+    }
+
     public static TransferRequest randomTransferRequestWithDescription(final String description) {
         return randomTransferRequest(randomTransferType(), randomInteger(), description);
     }
@@ -64,7 +68,7 @@ public class FakerUtil {
         return randomTransferRequest(transferType, value, randomDescription());
     }
 
-    public static TransferRequest randomTransferRequest(final TransferType transferType, final Integer value, final String description) {
+    private static TransferRequest randomTransferRequest(final TransferType transferType, final Integer value, final String description) {
         return TransferRequest.builder()
             .value(value)
             .type(transferType)

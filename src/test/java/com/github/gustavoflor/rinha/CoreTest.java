@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @ActiveProfiles("test")
@@ -65,17 +66,17 @@ public abstract class CoreTest {
         registry.add("spring.data.redis.port", redisContainer::getPort);
     }
 
-    protected void doSyncAndConcurrently(int threadCount, Consumer<String> operation) throws InterruptedException {
+    protected void doSyncAndConcurrently(int threadCount, Consumer<Integer> operation) throws InterruptedException {
         final var startLatch = new CountDownLatch(1);
         final var endLatch = new CountDownLatch(threadCount);
         for (int i = 0; i < threadCount; i++) {
-            String threadName = "thread-" + i;
+            int index = i;
             new Thread(() -> {
                 try {
                     startLatch.await();
-                    operation.accept(threadName);
+                    operation.accept(index);
                 } catch (Exception e) {
-                    System.err.printf("Error while executing operation %s: %s%n", threadName, e.getMessage());
+                    System.err.printf("Error while executing operation on index = [%s]: %s%n", index, e.getMessage());
                 } finally {
                     endLatch.countDown();
                 }

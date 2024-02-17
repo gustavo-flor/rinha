@@ -2,12 +2,11 @@ package com.github.gustavoflor.rinha.entrypoint.controller;
 
 import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.entrypoint.ApiTest;
+import com.github.gustavoflor.rinha.entrypoint.dto.TransferRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 
 import static com.github.gustavoflor.rinha.core.TransferType.CREDIT;
 import static com.github.gustavoflor.rinha.core.TransferType.DEBIT;
@@ -21,13 +20,18 @@ import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestW
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithType;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithTypeAndValue;
 import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithValue;
+import static com.github.gustavoflor.rinha.util.FakerUtil.randomTransferRequestWithValueAndDescription;
 import static java.text.MessageFormat.format;
+import static java.time.LocalDateTime.now;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
@@ -305,30 +309,70 @@ class CustomerControllerTest extends ApiTest {
 
     @Test
     @DisplayName("""
-        GIVEN multiple credit requests
+        GIVEN multiple transfer requests
         WHEN try do transfer
-        THEN should return ok status and update registry
+        THEN should return ok status and update registries
         """)
-    void givenMultipleCreditRequestsWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistry() throws InterruptedException {
-        final var requestValue = randomInteger();
-        final var customer = customerRepository.save(randomCustomer());
-        final var amount = randomInteger(10, 15);
-        final var expectedBalance = customer.getBalance() + (requestValue * amount);
+    void givenMultipleTransferRequestsWhenTryDoTransferThenShouldReturnOkStatusAndUpdateRegistries() throws InterruptedException {
+        final var customer = customerRepository.save(randomCustomer(10000000, 0));
+        final int amount = randomInteger(10, 15);
+        final var requests = new ArrayList<TransferRequest>();
+        for (int i = 0; i < amount; i++) {
+            final var value = randomInteger(1000, 100000);
+            final var description = format("test-{0}", i);
+            final var request = randomTransferRequestWithValueAndDescription(value, description);
+            requests.add(request);
+        }
+        final var expectedBalance = requests.stream()
+            .map(it -> it.isDebit() ? it.value() * -1 : it.value())
+            .reduce(Integer::sum)
+            .orElse(0);
 
-        doSyncAndConcurrently(amount, threadName -> {
-            final var request = randomTransferRequest(CREDIT, requestValue, threadName);
-            doTransfer(customer.getId(), request).statusCode(OK.value());
+        final var startedAt = now();
+        doSyncAndConcurrently(amount, index -> {
+            final var request = requests.get(index);
+            doTransfer(customer.getId(), request).statusCode(OK.value())
+                .body(LIMIT_FIELD, is(customer.getLimit()));;
         });
+        final var finishedAt = now();
 
         final var founded = customerRepository.findById(customer.getId()).orElseThrow();
         assertThat(founded.getBalance()).isEqualTo(expectedBalance);
         assertThat(founded.getLimit()).isEqualTo(customer.getLimit());
         final var transfers = transferRepository.findAll();
         assertThat(transfers.size()).isEqualTo(amount);
-        transfers.forEach(it -> {
-            assertThat(it.getType()).isEqualTo(CREDIT);
-            assertThat(it.getValue()).isEqualTo(requestValue);
+        requests.forEach(request -> {
+            final var transfer = transfers.stream()
+                .filter(it -> it.getDescription().equals(request.description()))
+                .findFirst()
+                .orElseThrow();
+            assertThat(transfer.getCustomerId()).isEqualTo(customer.getId());
+            assertThat(transfer.getType()).isEqualTo(request.type());
+            assertThat(transfer.getValue()).isEqualTo(request.value());
+            assertThat(transfer.getType()).isEqualTo(request.type());
+            assertThat(transfer.getExecutedAt()).isBetween(startedAt, finishedAt);
         });
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a runtime exception
+        WHEN try do transfer
+        THEN should not commit changes on database
+        """)
+    void givenARuntimeExceptionWhenTryDoTransferThenShouldNotCommitChangesOnDatabase() {
+        final var limit = randomInteger();
+        final var customer = customerRepository.save(randomCustomer(limit, 0));
+        final var request = randomTransferRequestWithValue(limit);
+        doThrow(new RuntimeException()).when(transferRepository).save(any());
+
+        doTransfer(customer.getId(), request).statusCode(INTERNAL_SERVER_ERROR.value());
+
+        final var founded = customerRepository.findById(customer.getId()).orElseThrow();
+        assertThat(founded.getBalance()).isEqualTo(customer.getBalance());
+        assertThat(founded.getLimit()).isEqualTo(customer.getLimit());
+        final var transfers = transferRepository.findAll();
+        assertThat(transfers.isEmpty()).isTrue();
     }
 
 }

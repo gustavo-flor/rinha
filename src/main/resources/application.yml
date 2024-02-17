@@ -17,9 +17,39 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      repositories:
+        enabled: false
+  aop:
+    auto: false
+  jmx:
+    enabled: false
+  jta:
+    enabled: true
+  servlet:
+    multipart:
+      enabled: false
+  dao:
+    exceptiontranslation:
+      enabled: false
+  application:
+    admin:
+      enabled: false
+  sql:
+    init:
+      mode: never
+  mvc:
+    formcontent:
+      filter:
+        enabled: false
 management:
   endpoints:
+    jmx:
+      exposure:
+        exclude: '*'
     web:
       exposure:
         include: health
       base-path: '/'
+  health:
+    diskspace:
+      enabled: false

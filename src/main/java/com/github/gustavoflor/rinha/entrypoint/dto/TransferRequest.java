@@ -8,8 +8,15 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
+import static com.github.gustavoflor.rinha.core.TransferType.DEBIT;
+
 @Builder
 public record TransferRequest(@JsonProperty("valor") @Positive @NotNull Integer value,
                               @JsonProperty("tipo") @NotNull TransferType type,
                               @JsonProperty("descricao") @NotBlank @Size(min = 1, max = 10) String description) {
+
+    public boolean isDebit() {
+        return DEBIT == type;
+    }
+
 }
