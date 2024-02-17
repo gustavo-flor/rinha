@@ -52,7 +52,3 @@ management:
   health:
     diskspace:
       enabled: false
-logging:
-  level:
-    root: debug
-debug: true
