@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec java $@ -jar app.jar
+exec java $1 $2
