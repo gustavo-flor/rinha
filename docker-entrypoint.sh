@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec java -XX:+UseParallelGC -jar app.jar
+exec java $@ -jar app.jar
