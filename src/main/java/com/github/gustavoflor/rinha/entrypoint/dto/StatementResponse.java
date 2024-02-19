@@ -23,7 +23,7 @@ public record StatementResponse(@JsonProperty("saldo") BalanceState balanceState
 
     record BalanceState(@JsonProperty("total") Integer value,
                         @JsonProperty("data_extrato") LocalDateTime statementDate,
-                        @JsonProperty("limite") Integer limite) {
+                        @JsonProperty("limite") Integer limit) {
 
         public static BalanceState of(final Customer customer) {
             return new BalanceState(customer.getBalance(), LocalDateTime.now(), customer.getLimit());

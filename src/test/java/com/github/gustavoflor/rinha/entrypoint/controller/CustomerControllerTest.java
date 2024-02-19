@@ -1,10 +1,19 @@
 package com.github.gustavoflor.rinha.entrypoint.controller;
 
 import com.github.gustavoflor.rinha.core.Transfer;
+import com.github.gustavoflor.rinha.core.repository.CustomerRepository;
+import com.github.gustavoflor.rinha.core.repository.TransferRepository;
+import com.github.gustavoflor.rinha.core.usecase.TransferUseCase;
 import com.github.gustavoflor.rinha.entrypoint.ApiTest;
 import com.github.gustavoflor.rinha.entrypoint.dto.TransferRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.integration.util.CheckedCallable;
 
 import java.util.ArrayList;
 
@@ -29,11 +38,15 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 class CustomerControllerTest extends ApiTest {
@@ -48,6 +61,22 @@ class CustomerControllerTest extends ApiTest {
     private static final String LAST_TRANSFER_TYPE_FIELD_TEMPLATE = LAST_TRANSFERS_FIELD + "[{0}].tipo";
     private static final String LAST_TRANSFER_DESCRIPTION_FIELD_TEMPLATE = LAST_TRANSFERS_FIELD + "[{0}].descricao";
     private static final String LAST_TRANSFER_EXECUTED_AT_FIELD_TEMPLATE = LAST_TRANSFERS_FIELD + "[{0}].realizada_em";
+
+    @SpyBean
+    protected CustomerRepository customerRepository;
+
+    @SpyBean
+    protected TransferRepository transferRepository;
+
+    @SpyBean
+    protected LockRegistry lockRegistry;
+
+    @AfterEach
+    void afterEach() {
+        Mockito.reset(customerRepository, transferRepository, lockRegistry);
+        customerRepository.deleteAll();
+        transferRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("""
@@ -75,6 +104,81 @@ class CustomerControllerTest extends ApiTest {
             .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
             .body(STATEMENT_DATE, notNullValue())
             .body(LAST_TRANSFERS_FIELD, empty());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN some requests sequentially
+        WHEN get statement
+        THEN should call database only one time
+        """)
+    void givenSomeRequestsSequentiallyWhenGetStatementThenShouldCallDatabaseOnlyOneTime() throws InterruptedException {
+        final var customer = customerRepository.save(randomCustomer());
+        final var customerId = customer.getId();
+        final int amount = randomInteger(1, 3);
+
+        for (int index = 0; index < amount; index++) {
+            getStatement(customerId).statusCode(OK.value())
+                .body(STATEMENT_BALANCE_FIELD, is(customer.getBalance()))
+                .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
+                .body(STATEMENT_DATE, notNullValue())
+                .body(LAST_TRANSFERS_FIELD, empty());
+        }
+
+        verify(customerRepository).findById(customerId);
+        verify(transferRepository).findLatest(customerId);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN some requests concurrently
+        WHEN get statement
+        THEN should call database only one time
+        """)
+    void givenSomeRequestsConcurrentlyWhenGetStatementThenShouldCallDatabaseOnlyOneTime() throws InterruptedException {
+        final var customer = customerRepository.save(randomCustomer());
+        final var customerId = customer.getId();
+        final var amount = randomInteger(1, 3);
+
+        doSyncAndConcurrently(amount, index -> {
+            getStatement(customerId).statusCode(OK.value())
+                .body(STATEMENT_BALANCE_FIELD, is(customer.getBalance()))
+                .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
+                .body(STATEMENT_DATE, notNullValue())
+                .body(LAST_TRANSFERS_FIELD, empty());
+        });
+
+        verify(customerRepository).findById(customerId);
+        verify(transferRepository).findLatest(customerId);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a transfer after get statement
+        WHEN call service
+        THEN should invalidate cache
+        """)
+    void givenATransferAfterGetStatementWhenCallServiceThenShouldInvalidateCache() {
+        final var customer = customerRepository.save(randomCustomer());
+        final var customerId = customer.getId();
+        final var request = randomTransferRequestWithValue(customer.getLimit());
+        final var transferValue = request.isDebit() ? request.value() * -1 : request.value();
+        final var expectedBalance = customer.getBalance() + transferValue;
+
+        getStatement(customerId).statusCode(OK.value())
+            .body(STATEMENT_BALANCE_FIELD, is(customer.getBalance()))
+            .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
+            .body(STATEMENT_DATE, notNullValue())
+            .body(LAST_TRANSFERS_FIELD, empty());
+        doTransfer(customerId, request).statusCode(OK.value());
+        getStatement(customerId).statusCode(OK.value())
+            .body(STATEMENT_BALANCE_FIELD, is(expectedBalance))
+            .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
+            .body(STATEMENT_DATE, notNullValue())
+            .body(LAST_TRANSFERS_FIELD, hasSize(1));
+
+        verify(customerRepository, times(3)).findById(customerId);
+        verify(transferRepository, times(2)).findLatest(customerId);
     }
 
     @Test
@@ -364,7 +468,7 @@ class CustomerControllerTest extends ApiTest {
         final var limit = randomInteger();
         final var customer = customerRepository.save(randomCustomer(limit, 0));
         final var request = randomTransferRequestWithValue(limit);
-        doThrow(new RuntimeException()).when(transferRepository).save(any());
+        doThrow(RuntimeException.class).when(transferRepository).save(any());
 
         doTransfer(customer.getId(), request).statusCode(INTERNAL_SERVER_ERROR.value());
 
@@ -373,6 +477,22 @@ class CustomerControllerTest extends ApiTest {
         assertThat(founded.getLimit()).isEqualTo(customer.getLimit());
         final var transfers = transferRepository.findAll();
         assertThat(transfers.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an error on lock registry
+        WHEN try do transfer
+        THEN should return service unavailable status
+        """)
+    void givenAnErrorOnLockRegistryWhenTryDoTransferThenShouldReturnServiceUnavailableException() throws Exception {
+        final var customer = customerRepository.save(randomCustomer());
+        final var request = randomTransferRequest();
+        final var lockKey = format("do-transfer.{0}", customer.getId());
+        doThrow(Exception.class).when(lockRegistry)
+            .executeLocked(eq(lockKey), any(), ArgumentMatchers.<CheckedCallable<TransferUseCase.Output, Exception>>any());
+
+        doTransfer(customer.getId(), request).statusCode(SERVICE_UNAVAILABLE.value());
     }
 
 }

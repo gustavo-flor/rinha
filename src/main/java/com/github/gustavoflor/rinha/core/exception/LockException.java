@@ -4,9 +4,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
-public class ServiceUnavailableException extends ResponseStatusException {
+public class LockException extends ResponseStatusException {
 
-    public ServiceUnavailableException(final Throwable cause) {
+    public LockException(final Throwable cause) {
         super(SERVICE_UNAVAILABLE, null, cause);
     }
 

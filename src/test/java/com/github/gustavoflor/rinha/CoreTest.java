@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -32,12 +33,6 @@ public abstract class CoreTest {
     @Container
     protected static RedisContainer<?> redisContainer = new RedisContainer<>("redis:7.2.4-alpine");
 
-    @SpyBean
-    protected CustomerRepository customerRepository;
-
-    @SpyBean
-    protected TransferRepository transferRepository;
-
     @BeforeAll
     static void beforeAll() {
         postgresContainer.start();
@@ -48,13 +43,6 @@ public abstract class CoreTest {
     static void afterAll() {
         postgresContainer.stop();
         redisContainer.stop();
-    }
-
-    @AfterEach
-    void afterEach() {
-        Mockito.reset(customerRepository, transferRepository);
-        customerRepository.deleteAll();
-        transferRepository.deleteAll();
     }
 
     @DynamicPropertySource
