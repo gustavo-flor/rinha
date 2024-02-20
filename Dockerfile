@@ -1,27 +1,30 @@
-FROM ghcr.io/graalvm/jdk:22.3.2 AS build
+FROM ghcr.io/graalvm/graalvm-ce:ol7-java17 AS build
 
-# Update package lists and Install Maven
-RUN microdnf update -y && \
-    microdnf install -y maven gcc glibc-devel zlib-devel libstdc++-devel gcc-c++ && \
-    microdnf clean all
+ADD . /build
+WORKDIR /build
 
-WORKDIR /usr/src/app
+# For SDKMAN to work we need unzip & zip
+RUN yum install -y unzip zip
 
-# Copy pom.xml and download dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline
+RUN \
+    # Install SDKMAN
+    curl -s "https://get.sdkman.io" | bash; \
+    source "$HOME/.sdkman/bin/sdkman-init.sh"; \
+    # Install Maven
+    sdk install maven; \
+    # Install GraalVM Native Image
+    gu install native-image;
 
-# Copy src and build native image
-COPY . .
-RUN mvn -Pnative native:compile -DskipTests
+RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn --version
 
-# Second stage: Lightweight debian-slim image
-FROM debian:bookworm-slim AS release
+RUN native-image --version
 
-WORKDIR /app
+RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn -Pnative native:compile -DskipTests
 
-# Copy the native binary from the build stage
-COPY --from=build /usr/src/app/target/rinha /app/rinha
 
-# Run the application
-CMD ["/app/rinha"]
+FROM oraclelinux:7-slim AS release
+
+# Add Spring Boot Native app spring-boot-graal to Container
+COPY --from=build "/build/target/rinha" rinha
+
+CMD [ "sh", "-c", "./rinha" ]
