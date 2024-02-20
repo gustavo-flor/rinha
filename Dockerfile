@@ -12,7 +12,7 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 
 # Copy src and build native image
-COPY src src
+COPY . .
 RUN mvn -Pnative native:compile -DskipTests
 
 # Second stage: Lightweight debian-slim image
