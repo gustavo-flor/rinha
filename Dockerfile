@@ -1,9 +1,13 @@
-FROM ghcr.io/graalvm/graalvm-community:17 AS build
+FROM ghcr.io/graalvm/jdk:22.3.2 AS build
+
+RUN microdnf update -y && \
+  microdnf install -y maven gcc glibc-devel zlib-devel libstdc++-devel gcc-c++ && \
+  microdnf clean all
 
 COPY pom.xml .
 COPY src src
 
-RUN mvn -Pnative -Pproduction native:compile -DskipTests
+RUN mvn -Pnative native:compile -DskipTests
 
 FROM debian:bookworm-slim AS release
 
