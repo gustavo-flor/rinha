@@ -1,15 +1,15 @@
-FROM maven:3.8.5-openjdk-17-slim AS build
+FROM ghcr.io/graalvm/graalvm-community:17 AS build
 
 COPY pom.xml .
+
+RUN mvn dependency:go-offline
+
 COPY src src
 
-RUN mvn clean install --batch-mode -DskipTests
+RUN mvn -Pnative -Pproduction native:compile -DskipTests
 
-FROM openjdk:17-slim AS release
+FROM debian:bookworm-slim AS release
 
-COPY --from=build /target/*.jar /app.jar
-COPY docker-entrypoint.sh /
+COPY --from=build /target/rinha /rinha
 
-RUN chmod +x /docker-entrypoint.sh
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/rinha"]

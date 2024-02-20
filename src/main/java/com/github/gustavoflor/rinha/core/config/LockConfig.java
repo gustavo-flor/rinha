@@ -7,7 +7,7 @@ import org.springframework.integration.redis.util.RedisLockRegistry;
 
 import static org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType.PUB_SUB_LOCK;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class LockConfig {
 
     private static final String REGISTRY_KEY = "lock";

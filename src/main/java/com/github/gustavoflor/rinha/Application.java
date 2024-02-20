@@ -1,5 +1,8 @@
 package com.github.gustavoflor.rinha;
 
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.endpoint.jmx.JmxEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
@@ -26,9 +29,13 @@ import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfigurati
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import static org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_CONSTRUCTORS;
+
 @SpringBootApplication(
+	proxyBeanMethods = false,
 	scanBasePackages = "com.github.gustavoflor.rinha",
 	exclude = {
 		IntegrationAutoConfiguration.class,
@@ -58,10 +65,19 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	}
 )
 @EnableJpaRepositories(basePackages = "com.github.gustavoflor.rinha.core.repository")
+@ImportRuntimeHints(Application.Hints.class)
 public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
+	}
+
+	public static class Hints implements RuntimeHintsRegistrar {
+		@Override
+		public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+			hints.reflection()
+				.registerType(PostgreSQLEnumJdbcType.class, INVOKE_DECLARED_CONSTRUCTORS);
+		}
 	}
 
 }
