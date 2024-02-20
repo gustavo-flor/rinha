@@ -3,12 +3,23 @@ package com.github.gustavoflor.rinha.core.usecase;
 import com.github.gustavoflor.rinha.core.TransferType;
 import com.github.gustavoflor.rinha.core.Customer;
 import com.github.gustavoflor.rinha.core.Transfer;
+import lombok.RequiredArgsConstructor;
 
 public interface TransferUseCase {
 
     Output execute(Input input);
 
-    record Input(Integer customerId, TransferType transferType, Integer value, String description) {
+    @RequiredArgsConstructor
+    class Input {
+
+        private final Integer customerId;
+        private final TransferType transferType;
+        private final Integer value;
+        private final String description;
+
+        public Integer customerId() {
+            return customerId;
+        }
 
         public Transfer transfer() {
             return Transfer.builder()
@@ -18,9 +29,15 @@ public interface TransferUseCase {
                 .description(description)
                 .build();
         }
-
     }
 
-    record Output(Customer customer) {}
+    @RequiredArgsConstructor
+    class Output {
+        private final Customer customer;
+
+        public Customer customer() {
+            return customer;
+        }
+    }
 
 }
