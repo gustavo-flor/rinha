@@ -3,7 +3,7 @@ package com.github.gustavoflor.rinha.entrypoint.controller;
 import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.core.repository.CustomerRepository;
 import com.github.gustavoflor.rinha.core.repository.TransferRepository;
-import com.github.gustavoflor.rinha.core.usecase.TransferUseCase;
+import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCase;
 import com.github.gustavoflor.rinha.entrypoint.ApiTest;
 import com.github.gustavoflor.rinha.entrypoint.dto.TransferRequest;
 import org.junit.jupiter.api.AfterEach;

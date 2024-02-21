@@ -1,11 +1,13 @@
-package com.github.gustavoflor.rinha.core.usecase.impl;
+package com.github.gustavoflor.rinha.core.usecase.transfer.impl;
 
 import com.github.gustavoflor.rinha.core.exception.NotFoundException;
 import com.github.gustavoflor.rinha.core.exception.LockException;
 import com.github.gustavoflor.rinha.core.service.CustomerService;
 import com.github.gustavoflor.rinha.core.service.LockService;
 import com.github.gustavoflor.rinha.core.service.TransferService;
-import com.github.gustavoflor.rinha.core.usecase.TransferUseCase;
+import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCase;
+import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseInput;
+import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseOutput;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
@@ -30,7 +32,7 @@ public class TransferUseCaseImpl implements TransferUseCase {
 
     @Override
     @CacheEvict(cacheNames = GET_STATEMENT_KEY, key = "#input.customerId()", beforeInvocation = true)
-    public Output execute(final Input input) {
+    public TransferUseCaseOutput execute(final TransferUseCaseInput input) {
         final var lockKey = format(TRANSFER_LOCK_KEY_TEMPLATE, input.customerId());
         try {
             return lockService.tryLock(lockKey, TRY_LOCK_DURATION, () -> transfer(input));
@@ -41,7 +43,7 @@ public class TransferUseCaseImpl implements TransferUseCase {
         }
     }
 
-    private Output transfer(final Input input) {
+    private TransferUseCaseOutput transfer(final TransferUseCaseInput input) {
         return transactionTemplate.execute(status -> {
             final var customer = customerService.findById(input.customerId()).orElseThrow(NotFoundException::new);
             final var transfer = input.transfer();
@@ -51,7 +53,7 @@ public class TransferUseCaseImpl implements TransferUseCase {
             customerService.save(customer);
             transferService.save(transfer);
 
-            return new Output(customer);
+            return new TransferUseCaseOutput(customer);
         });
     }
 
