@@ -2,6 +2,7 @@ package com.github.gustavoflor.rinha;
 
 import com.github.gustavoflor.rinha.core.usecase.statement.StatementUseCaseInput;
 import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseInput;
+import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseOutput;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -35,6 +36,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import static org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_CONSTRUCTORS;
+import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS;
 import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS;
 
 @SpringBootApplication(
@@ -81,7 +83,8 @@ public class Application {
 			hints.reflection()
 				.registerType(PostgreSQLEnumJdbcType.class, INVOKE_DECLARED_CONSTRUCTORS)
 				.registerType(StatementUseCaseInput.class, INVOKE_PUBLIC_METHODS)
-				.registerType(TransferUseCaseInput.class, INVOKE_PUBLIC_METHODS);
+				.registerType(TransferUseCaseInput.class, INVOKE_PUBLIC_METHODS)
+				.registerType(TransferUseCaseOutput.class, INVOKE_PUBLIC_CONSTRUCTORS, INVOKE_PUBLIC_METHODS);
 		}
 	}
 
