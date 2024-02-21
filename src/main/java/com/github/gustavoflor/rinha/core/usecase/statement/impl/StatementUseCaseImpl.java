@@ -1,5 +1,7 @@
 package com.github.gustavoflor.rinha.core.usecase.statement.impl;
 
+import com.github.gustavoflor.rinha.core.Customer;
+import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.core.exception.NotFoundException;
 import com.github.gustavoflor.rinha.core.service.CustomerService;
 import com.github.gustavoflor.rinha.core.service.TransferService;
@@ -15,7 +17,6 @@ import static com.github.gustavoflor.rinha.core.config.CacheConfig.GET_STATEMENT
 
 @Component
 @RequiredArgsConstructor
-@RegisterReflectionForBinding(StatementUseCaseOutput.class)
 public class StatementUseCaseImpl implements StatementUseCase {
 
     private final CustomerService customerService;
@@ -23,6 +24,7 @@ public class StatementUseCaseImpl implements StatementUseCase {
 
     @Override
     @Cacheable(value = GET_STATEMENT_KEY, key = "#input.customerId()", sync = true)
+    @RegisterReflectionForBinding({ StatementUseCaseOutput.class, Customer.class, Transfer.class })
     public StatementUseCaseOutput execute(final StatementUseCaseInput input) {
         final var customer = customerService.findById(input.customerId())
             .orElseThrow(NotFoundException::new);
