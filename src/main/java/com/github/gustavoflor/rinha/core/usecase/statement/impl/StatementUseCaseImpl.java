@@ -7,7 +7,6 @@ import com.github.gustavoflor.rinha.core.usecase.statement.StatementUseCase;
 import com.github.gustavoflor.rinha.core.usecase.statement.StatementUseCaseInput;
 import com.github.gustavoflor.rinha.core.usecase.statement.StatementUseCaseOutput;
 import lombok.RequiredArgsConstructor;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,6 @@ public class StatementUseCaseImpl implements StatementUseCase {
 
     @Override
     @Cacheable(value = GET_STATEMENT_KEY, key = "#input.customerId()", sync = true)
-    @RegisterReflectionForBinding(StatementUseCaseOutput.class)
     public StatementUseCaseOutput execute(final StatementUseCaseInput input) {
         final var customer = customerService.findById(input.customerId())
             .orElseThrow(NotFoundException::new);
