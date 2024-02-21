@@ -3,7 +3,7 @@ package com.github.gustavoflor.rinha.entrypoint.controller;
 import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.core.repository.CustomerRepository;
 import com.github.gustavoflor.rinha.core.repository.TransferRepository;
-import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCase;
+import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseOutput;
 import com.github.gustavoflor.rinha.entrypoint.ApiTest;
 import com.github.gustavoflor.rinha.entrypoint.dto.TransferRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -490,7 +490,7 @@ class CustomerControllerTest extends ApiTest {
         final var request = randomTransferRequest();
         final var lockKey = format("do-transfer.{0}", customer.getId());
         doThrow(Exception.class).when(lockRegistry)
-            .executeLocked(eq(lockKey), any(), ArgumentMatchers.<CheckedCallable<TransferUseCase.Output, Exception>>any());
+            .executeLocked(eq(lockKey), any(), ArgumentMatchers.<CheckedCallable<TransferUseCaseOutput, Exception>>any());
 
         doTransfer(customer.getId(), request).statusCode(SERVICE_UNAVAILABLE.value());
     }
