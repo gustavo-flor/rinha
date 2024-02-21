@@ -15,6 +15,7 @@ import static com.github.gustavoflor.rinha.core.config.CacheConfig.GET_STATEMENT
 
 @Component
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(StatementUseCaseOutput.class)
 public class StatementUseCaseImpl implements StatementUseCase {
 
     private final CustomerService customerService;
@@ -22,7 +23,6 @@ public class StatementUseCaseImpl implements StatementUseCase {
 
     @Override
     @Cacheable(value = GET_STATEMENT_KEY, key = "#input.customerId()", sync = true)
-    @RegisterReflectionForBinding(StatementUseCaseOutput.class)
     public StatementUseCaseOutput execute(final StatementUseCaseInput input) {
         final var customer = customerService.findById(input.customerId())
             .orElseThrow(NotFoundException::new);
