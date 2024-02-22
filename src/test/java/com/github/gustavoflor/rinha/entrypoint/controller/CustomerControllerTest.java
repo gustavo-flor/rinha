@@ -154,6 +154,35 @@ class CustomerControllerTest extends ApiTest {
 
     @Test
     @DisplayName("""
+        GIVEN a transfer after get statement
+        WHEN call service
+        THEN should invalidate cache
+        """)
+    void givenATransferAfterGetStatementWhenCallServiceThenShouldInvalidateCache() {
+        final var customer = customerRepository.save(randomCustomer());
+        final var customerId = customer.getId();
+        final var request = randomTransferRequestWithValue(customer.getLimit());
+        final var transferValue = request.isDebit() ? request.value() * -1 : request.value();
+        final var expectedBalance = customer.getBalance() + transferValue;
+
+        getStatement(customerId).statusCode(OK.value())
+            .body(STATEMENT_BALANCE_FIELD, is(customer.getBalance()))
+            .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
+            .body(STATEMENT_DATE, notNullValue())
+            .body(LAST_TRANSFERS_FIELD, empty());
+        doTransfer(customerId, request).statusCode(OK.value());
+        getStatement(customerId).statusCode(OK.value())
+            .body(STATEMENT_BALANCE_FIELD, is(expectedBalance))
+            .body(STATEMENT_LIMIT_FIELD, is(customer.getLimit()))
+            .body(STATEMENT_DATE, notNullValue())
+            .body(LAST_TRANSFERS_FIELD, hasSize(1));
+
+        verify(customerRepository, times(3)).findById(customerId);
+        verify(transferRepository, times(2)).findLatest(customerId);
+    }
+
+    @Test
+    @DisplayName("""
         GIVEN a customer with less than 10 transfers
         WHEN try get statement
         THEN should return a statement with last transfers field filled
