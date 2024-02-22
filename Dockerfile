@@ -13,7 +13,7 @@ RUN gu install native-image;
 
 RUN native-image --version
 
-RUN ./mvnw -Pnative native:compile -DskipTests
+RUN ./mvnw clean -Pnative native:compile -DskipTests
 
 FROM oraclelinux:7-slim AS release
 
