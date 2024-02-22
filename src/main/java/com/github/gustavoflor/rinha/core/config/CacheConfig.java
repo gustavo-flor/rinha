@@ -18,8 +18,6 @@ import static org.springframework.data.redis.serializer.RedisSerializationContex
 @EnableCaching
 public class CacheConfig {
 
-    public static final String GET_STATEMENT_KEY = "get-statement";
-
     @Bean
     public RedisCacheConfiguration redisCacheConfiguration(final ObjectMapper objectMapper) {
         final var cacheObjectMapper = objectMapper.copy()
