@@ -89,10 +89,7 @@ public class Application {
 			hints.reflection()
 				.registerType(PostgreSQLEnumJdbcType.class, INVOKE_DECLARED_CONSTRUCTORS)
 				.registerType(StatementUseCaseInput.class, INVOKE_PUBLIC_METHODS)
-				.registerType(TransferUseCaseInput.class, INVOKE_PUBLIC_METHODS)
-				.registerType(StatementUseCaseOutput.class, INVOKE_DECLARED_CONSTRUCTORS, DECLARED_FIELDS, INVOKE_DECLARED_METHODS)
-				.registerType(Customer.class, INVOKE_DECLARED_CONSTRUCTORS, DECLARED_FIELDS, INVOKE_DECLARED_METHODS)
-				.registerType(Transfer.class, INVOKE_DECLARED_CONSTRUCTORS, DECLARED_FIELDS, INVOKE_DECLARED_METHODS);
+				.registerType(TransferUseCaseInput.class, INVOKE_PUBLIC_METHODS);
 		}
 	}
 
