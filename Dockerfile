@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol7-java17 AS build
+FROM container-registry.oracle.com/graalvm/native-image:17-ol8 AS build
 
 COPY .mvn .mvn
 COPY mvnw .
@@ -13,9 +13,9 @@ RUN gu install native-image;
 
 RUN native-image --version
 
-RUN ./mvnw -Pnative native:compile -DskipTests
+RUN ./mvnw --no-transfer-progress native:compile -Pnative -DskipTests
 
-FROM oraclelinux:7-slim AS release
+FROM container-registry.oracle.com/os/oraclelinux:8-slim AS release
 
 COPY --from=build "/target/rinha" rinha
 
