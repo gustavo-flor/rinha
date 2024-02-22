@@ -1,30 +1,22 @@
 FROM ghcr.io/graalvm/graalvm-community:17.0.9-ol7-20231024 AS build
 
-ADD . /build
-WORKDIR /build
+COPY .mvn .mvn
+COPY mvnw .
+COPY mvnw.cmd .
 
-# For SDKMAN to work we need unzip & zip
-RUN yum install -y unzip zip
+RUN ./mvnw --version
 
-RUN \
-    # Install SDKMAN
-    curl -s "https://get.sdkman.io" | bash; \
-    source "$HOME/.sdkman/bin/sdkman-init.sh"; \
-    # Install Maven
-    sdk install maven; \
-    # Install GraalVM Native Image
-    gu install native-image;
+COPY pom.xml .
+COPY src src
 
-RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn --version
+RUN gu install native-image;
 
 RUN native-image --version
 
-RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn -Pnative native:compile -DskipTests
-
+RUN ./mvnw -Pnative native:compile -DskipTests
 
 FROM oraclelinux:7-slim AS release
 
-# Add Spring Boot Native app spring-boot-graal to Container
-COPY --from=build "/build/target/rinha" rinha
+COPY --from=build "/target/rinha" rinha
 
 CMD [ "sh", "-c", "./rinha" ]
