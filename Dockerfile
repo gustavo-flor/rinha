@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol9-java17-22.3.0-b2 AS build
+FROM ghcr.io/graalvm/graalvm-ce:ol7-java17-21.3.1-b1 AS build
 
 COPY .mvn .mvn
 COPY mvnw .
