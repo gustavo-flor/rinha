@@ -23,7 +23,6 @@ spring:
         enabled: false
   cache:
     type: redis
-    cache-names: get-statement
   aop:
     auto: false
   jmx:

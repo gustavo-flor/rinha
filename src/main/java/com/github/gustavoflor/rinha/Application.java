@@ -1,11 +1,7 @@
 package com.github.gustavoflor.rinha;
 
-import com.github.gustavoflor.rinha.core.Customer;
-import com.github.gustavoflor.rinha.core.Transfer;
 import com.github.gustavoflor.rinha.core.usecase.statement.StatementUseCaseInput;
-import com.github.gustavoflor.rinha.core.usecase.statement.StatementUseCaseOutput;
 import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseInput;
-import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseOutput;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -38,11 +34,7 @@ import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConf
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import static org.springframework.aot.hint.MemberCategory.DECLARED_CLASSES;
-import static org.springframework.aot.hint.MemberCategory.DECLARED_FIELDS;
 import static org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_CONSTRUCTORS;
-import static org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_METHODS;
-import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS;
 import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS;
 
 @SpringBootApplication(
@@ -89,10 +81,7 @@ public class Application {
 			hints.reflection()
 				.registerType(PostgreSQLEnumJdbcType.class, INVOKE_DECLARED_CONSTRUCTORS)
 				.registerType(StatementUseCaseInput.class, INVOKE_PUBLIC_METHODS)
-				.registerType(TransferUseCaseInput.class, INVOKE_PUBLIC_METHODS)
-				.registerType(StatementUseCaseOutput.class, INVOKE_DECLARED_CONSTRUCTORS, DECLARED_FIELDS, INVOKE_DECLARED_METHODS)
-				.registerType(Customer.class, INVOKE_DECLARED_CONSTRUCTORS, DECLARED_FIELDS, INVOKE_DECLARED_METHODS)
-				.registerType(Transfer.class, INVOKE_DECLARED_CONSTRUCTORS, DECLARED_FIELDS, INVOKE_DECLARED_METHODS);
+				.registerType(TransferUseCaseInput.class, INVOKE_PUBLIC_METHODS);
 		}
 	}
 
