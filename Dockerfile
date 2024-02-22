@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol7-java17 AS build
+FROM ghcr.io/graalvm/graalvm-ce:ol7-java17@sha256:98ec043d265387cb4e09cf6e548f182d42651e8c0b0792b91cf50872d0fc0b23 AS build
 
 COPY .mvn .mvn
 COPY mvnw .
