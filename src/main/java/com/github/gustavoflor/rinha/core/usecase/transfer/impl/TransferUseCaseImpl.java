@@ -9,13 +9,11 @@ import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCase;
 import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseInput;
 import com.github.gustavoflor.rinha.core.usecase.transfer.TransferUseCaseOutput;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
 
-import static com.github.gustavoflor.rinha.core.config.CacheConfig.GET_STATEMENT_KEY;
 import static java.text.MessageFormat.format;
 
 @Component
@@ -31,7 +29,6 @@ public class TransferUseCaseImpl implements TransferUseCase {
     private final LockService lockService;
 
     @Override
-    @CacheEvict(cacheNames = GET_STATEMENT_KEY, key = "#input.customerId()", beforeInvocation = true)
     public TransferUseCaseOutput execute(final TransferUseCaseInput input) {
         final var lockKey = format(TRANSFER_LOCK_KEY_TEMPLATE, input.customerId());
         try {
